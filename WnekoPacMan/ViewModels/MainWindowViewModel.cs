@@ -11,8 +11,8 @@ namespace WnekoPacMan.ViewModels
 {
     partial class MainWindowViewModel : INotifyPropertyChanged
     {
-        private int[] playerPosition = new int[2];
-        private int[] movementDirection = new int[] { 1, 1 };
+        private int[] playerPosition = new int[] { 15, 15 };
+        private int[] movementDirection = new int[] { 0, 1 };
         DispatcherTimer timer;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -30,7 +30,7 @@ namespace WnekoPacMan.ViewModels
         {
             PlayerLeft += movementDirection[0];
             PlayerTop += movementDirection[1];
-            for(int i = 0; i < 2; i++)
+            for (int i = 0; i < 2; i++)
             {
                 if (playerPosition[i] > 800) playerPosition[i] = 0;
             }
@@ -46,19 +46,19 @@ namespace WnekoPacMan.ViewModels
 
         public int PlayerLeft
         {
-            get => playerPosition[0];
+            get => playerPosition[0] - 15;
             set
             {
-                playerPosition[0] = value;
+                playerPosition[0] = value + 15;
                 NotifyPropertyChanged();
             }
         }
         public int PlayerTop
         {
-            get => playerPosition[1];
+            get => playerPosition[1] - 15;
             set
             {
-                playerPosition[1] = value;
+                playerPosition[1] = value + 15;
                 NotifyPropertyChanged();
             }
         }
