@@ -17,7 +17,7 @@ namespace WnekoPacMan.ViewModels
 {
     partial class MainWindowViewModel : INotifyPropertyChanged
     {
-        int cellSize = 31;
+        int cellSize = 27;
         
         Game game;
         MainWindow main = (MainWindow)App.Current.MainWindow;

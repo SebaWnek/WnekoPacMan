@@ -36,7 +36,7 @@ namespace WnekoPacMan.Models
         protected int[] movementDirection = new int[] { 0, 0 };
         protected int[] firstGridCell = new int[2] ;
         protected Ellipse playerEllipse;
-        protected float speed = 1;
+        protected float speed = 2;
         protected int[] gridCell = new int[2];
         protected Directions currentDirection;
         protected bool directionChanged = false;

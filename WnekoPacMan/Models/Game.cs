@@ -41,10 +41,15 @@ namespace WnekoPacMan.Models
         Blue inky;
         Orange clyde;
         Dictionary<int, Ellipse> dotsList = new Dictionary<int, Ellipse>();
+        Dictionary<int, int> scores = new Dictionary<int, int>
+        {
+            {1, 10 },
+            {2, 50 }
+        };
 
         int skipCounter = 0;
-        int skipTreshold = 1;
-        int interval = 10;
+        int skipTreshold = 0;
+        int interval = 16;
         int[,] gameMatrixWithDots =
         {
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
@@ -173,6 +178,7 @@ namespace WnekoPacMan.Models
         }
         internal int Eat(int row, int col)
         {
+            int score = scores[gameMatrix[row, col]];
             gameMatrix[row, col] = 0;
             dotsList[row*100+col].Visibility = Visibility.Hidden;
             dotsCount--;
@@ -180,7 +186,7 @@ namespace WnekoPacMan.Models
             {
                 EndGame();
             }
-            return 0;
+            return score;
         }
 
         private void EndGame()
