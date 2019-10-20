@@ -66,6 +66,10 @@
     <Compile Include="Commands\CommandHandler.cs" />
     <Compile Include="Models\AI.cs" />
     <Compile Include="Models\Game.cs" />
+    <Compile Include="Models\Ghosts\Blue.cs" />
+    <Compile Include="Models\Ghosts\Orange.cs" />
+    <Compile Include="Models\Ghosts\Pink.cs" />
+    <Compile Include="Models\Ghosts\Red.cs" />
     <Compile Include="Models\Human.cs" />
     <Compile Include="Models\HumanPositionChangedEventArgs.cs" />
     <Compile Include="Models\Player.cs" />

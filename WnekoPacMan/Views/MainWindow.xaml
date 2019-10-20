@@ -17,7 +17,8 @@
         <KeyBinding Key="Right"
                     Command="{Binding MoveRightCommand}"/>
     </Window.InputBindings>
-    <Canvas x:Name="mainCanvas">
+    <Canvas x:Name="mainCanvas"
+            Background="Black">
         <Grid ShowGridLines="True" x:Name="gameGrid">
             <Grid.ColumnDefinitions>
                 

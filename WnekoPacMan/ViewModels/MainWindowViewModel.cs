@@ -19,8 +19,6 @@ namespace WnekoPacMan.ViewModels
     {
         int cellSize = 31;
         
-        Human human;
-        AI ghost;
         Game game;
         MainWindow main = (MainWindow)App.Current.MainWindow;
         int[] gridSize = new int[2];
@@ -34,17 +32,18 @@ namespace WnekoPacMan.ViewModels
             game = new Game(cellSize);
             GenerateGameGrid();
             InitializeCommands();
-            //main.mainCanvas.Children.Add(human.GetPlayerGraphics());
-            //main.mainCanvas.Children.Add(ghost.GetPlayerGraphics());
             AddPlayers();
             GridSize[0] = main.gameGrid.RowDefinitions.Count;
             GridSize[1] = main.gameGrid.ColumnDefinitions.Count;
-
         }
 
         private void AddPlayers()
         {
-            foreach (Player player in game.Players) main.mainCanvas.Children.Add(player.GetPlayerGraphics());
+            foreach (Player player in game.Players)
+            {
+                main.mainCanvas.Children.Add(player.GetPlayerGraphics());
+                if (player is AI) main.gameGrid.Children.Add(((AI)player).GetTargetGraphics());
+            }
         }
 
         private void GenerateGameGrid()

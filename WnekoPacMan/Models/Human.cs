@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace WnekoPacMan.Models
 {
@@ -10,9 +11,11 @@ namespace WnekoPacMan.Models
     {
         public event EventHandler<HumanPositionChangedEventArgs> HumanPositionChanged;
         int[] newGridCell = new int[2];
+        static Brush playerColor = Brushes.Yellow;
+        int score = 0;
 
         Directions nextDirection;
-        public Human(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir) : base(gridSize, cellSize, game, cell, dir)
+        public Human(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir) : base(gridSize, cellSize, game, cell, dir, playerColor)
         {
         }
 
@@ -21,7 +24,7 @@ namespace WnekoPacMan.Models
         public override void Move()
         {
             base.Move();
-            newGridCell[1] = (playerPosition[0]) / cellSize; //collumn
+            newGridCell[1] = (playerPosition[0]) / cellSize; //column
             newGridCell[0] = (playerPosition[1]) / cellSize; //row
             if(gridCell[0] != newGridCell[0] || gridCell[1] != newGridCell[1])
             {
@@ -31,6 +34,11 @@ namespace WnekoPacMan.Models
             gridCell[1] = newGridCell[1];
             if (CheckIfInTheMiddle())
             {
+                CellType currentCell = game.CheckGridCellType(gridCell);
+                if(currentCell == CellType.dot || currentCell == CellType.energizer || currentCell == CellType.fruit)
+                {
+                    score += game.Eat(gridCell[0], gridCell[1]);
+                }
                 int[] nextCellStraigth = GetNextCell(currentDirection);
                 CellType nextInLine = game.CheckGridCellType(nextCellStraigth);
                 int[] nextCellTurn = GetNextCell(NextDirection);

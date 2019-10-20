@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using WnekoPacMan.Models.Ghosts;
 
 namespace WnekoPacMan.Models
 {
@@ -16,6 +17,8 @@ namespace WnekoPacMan.Models
     {
         wall,
         empty,
+        dot,
+        energizer,
         fruit,
         border
     }
@@ -33,15 +36,54 @@ namespace WnekoPacMan.Models
 
         Player[] players;
         Human human;
-        AI ghost;
+        Red blinky;
+        Pink pinky;
+        Blue inky;
+        Orange clyde;
+        Dictionary<int, Ellipse> dotsList = new Dictionary<int, Ellipse>();
 
         int skipCounter = 0;
         int skipTreshold = 1;
         int interval = 10;
+        int[,] gameMatrixWithDots =
+        {
+            {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+            {-1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1 },
+            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
+            {-1, 2 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 2 , -1 },
+            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
+            {-1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1 },
+            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
+            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
+            {-1, 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , -1 },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 0 , -1, -1, 0 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 0 , -1, -1, 0 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {0 , 0 , 0 , 0 , 0 , 0 , 1 , 0 , 0 , 0 , -1, -1, 0 , 0 , 0 , 0 , -1, -1, 0 , 0 , 0 , 1 , 0 , 0 , 0 , 0 , 0 , 0  },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
+            {-1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1 },
+            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
+            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
+            {-1, 2 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 0 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 2 , -1 },
+            {-1, -1, -1, 1 , -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, 1 , -1, -1, -1 },
+            {-1, -1, -1, 1 , -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, 1 , -1, -1, -1 },
+            {-1, 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , -1 },
+            {-1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1 },
+            {-1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1 },
+            {-1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1 },
+            {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
+        };
 
-        int[,] gameMatrix =
+
+        int[,] gameMatrixEmpty =
             {
-                {-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1},
+                {-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1},
                 {-1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1},
                 {-1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1},
                 {-1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1},
@@ -71,44 +113,120 @@ namespace WnekoPacMan.Models
                 {-1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1},
                 {-1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1},
                 {-1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1}
+                {-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1}
             };
+
+        int[,] gameMatrix;
         int[] gameMatrixSize = new int[2];
         int cellSize;
+        int dotsCount;
 
         public Game(int cellSize)
         {
-            Human = new Human(this.GameMatrixSize, cellSize, this, new int[] { 23, 14 }, Directions.Down);
-            ghost = new AI(this.GameMatrixSize, cellSize, this, new int[] { 5, 6 }, Directions.Down);
-            Human.HumanPositionChanged += ghost.OnHumanPositionChanged;
-            Players = new Player[] { Human, ghost };
-            this.cellSize = cellSize;
+            gameMatrix = gameMatrixWithDots;
             GameMatrixSize[0] = GameMatrix.GetLength(0);
             GameMatrixSize[1] = GameMatrix.GetLength(1);
+            Human = new Human(this.GameMatrixSize, cellSize, this, new int[] { 23, 14 }, Directions.Down);
+            blinky = new Red(this.GameMatrixSize, cellSize, this, new int[] { 5, 6 }, Directions.Down);
+            pinky = new Pink(this.GameMatrixSize, cellSize, this, new int[] { 29, 1 }, Directions.Right);
+            inky = new Blue(this.GameMatrixSize, cellSize, this, new int[] { 29, 26 }, Directions.Up);
+            clyde = new Orange(this.GameMatrixSize, cellSize, this, new int[] { 5, 26 }, Directions.Left);
+            Players = new Player[] { Human, blinky, pinky, inky, clyde };
+            foreach (Player ght in Players)
+            {
+                if (ght is AI)
+                {
+                    Human.HumanPositionChanged += ((AI)ght).OnHumanPositionChanged; 
+                } 
+            }
+            blinky.RedPositionChanged += inky.OnRedPositionChanged;
+            this.cellSize = cellSize;
+            dotsCount = CountDots();
             timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromMilliseconds(interval);
             timer.Tick += Timer_Tick;
             timer.Start();
 
         }
+
+        private int CountDots()
+        {
+            int count = 0;
+            for(int i = 0; i < GameMatrixSize[0]; i++)
+            {
+                for(int j = 0; j < GameMatrixSize[1]; j++)
+                {
+                    if (GameMatrix[i, j] == 1 || GameMatrix[i, j] == 2)
+                    {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
         private void Timer_Tick(object sender, EventArgs e)
         {
             foreach (Player player in Players) player.Move();
             SkipCounter = SkipCounter == skipTreshold ? 0 : SkipCounter + 1;
             //Debug.WriteLine(stopwatch.ElapsedMilliseconds);
         }
-
-        public UIElement GetElement(int row, int collumn)
+        internal int Eat(int row, int col)
         {
-            if (GameMatrix[row, collumn] == -1)
+            gameMatrix[row, col] = 0;
+            dotsList[row*100+col].Visibility = Visibility.Hidden;
+            dotsCount--;
+            if (dotsCount == 0)
+            {
+                EndGame();
+            }
+            return 0;
+        }
+
+        private void EndGame()
+        {
+            MessageBox.Show("You won!");
+        }
+
+        public UIElement GetElement(int row, int column)
+        {
+            if (GameMatrix[row, column] == -1)
             {
                 Rectangle wall = new Rectangle();
                 wall.Fill = Brushes.Blue;
                 wall.Width = cellSize;
                 wall.Height = cellSize;
                 wall.SetValue(Grid.RowProperty, row);
-                wall.SetValue(Grid.ColumnProperty, collumn);
+                wall.SetValue(Grid.ColumnProperty, column);
                 return wall;
+            }
+            if (GameMatrix[row,column] == 1)
+            {
+                Ellipse dot = new Ellipse();
+                dot.Fill = Brushes.White;
+                dot.Height = 5;
+                dot.Width = 5;
+                Thickness thickness = new Thickness((cellSize - 5) / 2);
+                dot.Margin = thickness;
+                dot.SetValue(Grid.RowProperty, row);
+                dot.SetValue(Grid.ColumnProperty, column);
+                dot.Name = "dot" + row + "_" + column;
+                dotsList.Add(row*100+column, dot);
+                return dot;
+            }
+            if(GameMatrix[row,column] == 2)
+            {
+                Ellipse energizer = new Ellipse();
+                energizer.Fill = Brushes.White;
+                energizer.Height = 9;
+                energizer.Width = 9;
+                Thickness thickness = new Thickness((cellSize - 9) / 2);
+                energizer.Margin = thickness;
+                energizer.SetValue(Grid.RowProperty, row);
+                energizer.SetValue(Grid.ColumnProperty, column);
+                energizer.Name = "energizer" + row + "_" + column;
+                dotsList.Add(row*100+column, energizer);
+                return energizer;
             }
             else return null;
         }
@@ -125,6 +243,10 @@ namespace WnekoPacMan.Models
                     case 0:
                         return CellType.empty;
                     case 1:
+                        return CellType.dot;
+                    case 2:
+                        return CellType.energizer;
+                    case 3:
                         return CellType.fruit;
                 }
             }

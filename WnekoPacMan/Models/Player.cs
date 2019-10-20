@@ -44,11 +44,11 @@ namespace WnekoPacMan.Models
         protected int cellSize;
         protected Game game;
 
-        public Player(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir)
+        protected Player(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, Brush color)
         {
             firstGridCell = cell;
             playerEllipse = new Ellipse();
-            playerEllipse.Fill = Brushes.Red;
+            playerEllipse.Fill = color;
             playerEllipse.Height = cellSize;
             playerEllipse.Width = cellSize;
             playerPosition = new int[] { firstGridCell[1] * cellSize + cellSize / 2, firstGridCell[0] * cellSize + cellSize / 2 };
