@@ -29,23 +29,19 @@ namespace WnekoPacMan.ViewModels
 
         private void MoveUp(object o)
         {
-            MovementY = -1;
-            MovementX = 0;
+            game.Human.NextDirection = Models.Directions.Up;
         }
         private void MoveDown(object o)
         {
-            MovementY = 1;
-            MovementX = 0;
+            game.Human.NextDirection = Models.Directions.Down;
         }
         private void MoveLeft(object o)
         {
-            MovementX = -1;
-            MovementY = 0;
+            game.Human.NextDirection = Models.Directions.Left;
         }
         private void MoveRight(object o)
         {
-            MovementX = 1;
-            MovementY = 0;
+            game.Human.NextDirection = Models.Directions.Right;
         }
     }
 }

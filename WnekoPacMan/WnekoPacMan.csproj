@@ -64,6 +64,11 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Commands\CommandHandler.cs" />
+    <Compile Include="Models\AI.cs" />
+    <Compile Include="Models\Game.cs" />
+    <Compile Include="Models\Human.cs" />
+    <Compile Include="Models\HumanPositionChangedEventArgs.cs" />
+    <Compile Include="Models\Player.cs" />
     <Compile Include="ViewModels\Commands.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
@@ -97,8 +102,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

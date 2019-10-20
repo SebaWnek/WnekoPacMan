@@ -1,40 +1,83 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
+using WnekoPacMan.Models;
 
 namespace WnekoPacMan.ViewModels
 {
     partial class MainWindowViewModel : INotifyPropertyChanged
     {
-        private int[] playerPosition = new int[] { 15, 15 };
-        private int[] movementDirection = new int[] { 0, 1 };
-        DispatcherTimer timer;
+        int cellSize = 31;
+        
+        Human human;
+        AI ghost;
+        Game game;
+        MainWindow main = (MainWindow)App.Current.MainWindow;
+        int[] gridSize = new int[2];
+
+        public int[] GridSize { get => gridSize; set => gridSize = value; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         public MainWindowViewModel()
         {
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(10);
-            timer.Tick += Timer_Tick;
-            timer.Start();
+            game = new Game(cellSize);
+            GenerateGameGrid();
             InitializeCommands();
+            //main.mainCanvas.Children.Add(human.GetPlayerGraphics());
+            //main.mainCanvas.Children.Add(ghost.GetPlayerGraphics());
+            AddPlayers();
+            GridSize[0] = main.gameGrid.RowDefinitions.Count;
+            GridSize[1] = main.gameGrid.ColumnDefinitions.Count;
+
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void AddPlayers()
         {
-            PlayerLeft += movementDirection[0];
-            PlayerTop += movementDirection[1];
-            for (int i = 0; i < 2; i++)
+            foreach (Player player in game.Players) main.mainCanvas.Children.Add(player.GetPlayerGraphics());
+        }
+
+        private void GenerateGameGrid()
+        {
+            for(int i = 0; i < game.GameMatrixSize[0]; i++)
             {
-                if (playerPosition[i] > 800) playerPosition[i] = 0;
+                RowDefinition row = new RowDefinition();
+                row.Height = new GridLength(cellSize);
+                main.gameGrid.RowDefinitions.Add(row);
+            }
+            for (int i = 0; i < game.GameMatrixSize[1]; i++)
+            {
+                ColumnDefinition column = new ColumnDefinition();
+                column.Width = new GridLength(cellSize);
+                main.gameGrid.ColumnDefinitions.Add(column);
+            }
+            GenerateGridUI();
+        }
+
+        private void GenerateGridUI()
+        {
+            UIElement element;
+            for(int i = 0; i < game.GameMatrixSize[0]; i++)
+            {
+                for (int j = 0; j < game.GameMatrixSize[1]; j++)
+                {
+                    element = game.GetElement(i, j);
+                    if(element != null) main.gameGrid.Children.Add(element);
+                }
             }
         }
+
+
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
@@ -44,36 +87,7 @@ namespace WnekoPacMan.ViewModels
             }
         }
 
-        public int PlayerLeft
-        {
-            get => playerPosition[0] - 15;
-            set
-            {
-                playerPosition[0] = value + 15;
-                NotifyPropertyChanged();
-            }
-        }
-        public int PlayerTop
-        {
-            get => playerPosition[1] - 15;
-            set
-            {
-                playerPosition[1] = value + 15;
-                NotifyPropertyChanged();
-            }
-        }
 
-        public int MovementX
-        {
-            get => movementDirection[0];
-            set => movementDirection[0] = value;
-        }
-
-        public int MovementY
-        {
-            get => movementDirection[1];
-            set => movementDirection[1] = value;
-        }
 
     }
 }
