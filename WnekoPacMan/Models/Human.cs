@@ -29,8 +29,8 @@ namespace WnekoPacMan.Models
             {
                 base.Move();
 
-                newGridCell[1] = (playerPosition[0]) / cellSize; //column
-                newGridCell[0] = (playerPosition[1]) / cellSize; //row
+                newGridCell[1] = (int)(playerPosition[0]) / cellSize; //column
+                newGridCell[0] = (int)(playerPosition[1]) / cellSize; //row
                 if (gridCell[0] != newGridCell[0] || gridCell[1] != newGridCell[1])
                 {
                     OnHumanPositionChanged();

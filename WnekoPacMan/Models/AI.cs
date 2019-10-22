@@ -91,8 +91,7 @@ namespace WnekoPacMan.Models
         public override void Move()
         {
             base.Move();
-            GridCell[1] = (playerPosition[0]) / cellSize; //column
-            GridCell[0] = (playerPosition[1]) / cellSize; //row
+            CalculateCell();
             CheckIfCaugth();
             int nextDirNumb;
             int count;
@@ -121,7 +120,7 @@ namespace WnekoPacMan.Models
         {
             if (gridCell[0] == playerCell[0] && gridCell[1] == playerCell[1]) 
             {
-                MessageBox.Show("You're dead!");
+                //MessageBox.Show("You're dead!");
             }
         }
 

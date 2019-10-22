@@ -48,8 +48,8 @@ namespace WnekoPacMan.Models
         };
 
         int skipCounter = 0;
-        int skipTreshold = 0;
-        int interval = 16;
+        int skipTreshold = 1;
+        int interval = 8;
         int[,] gameMatrixWithDots =
         {
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },

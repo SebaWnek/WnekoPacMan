@@ -32,14 +32,14 @@ namespace WnekoPacMan.Models
             {Directions.Left, new int[] { 0, -1 } },
             {Directions.Right, new int[] { 0, 1 } }
         };
-        protected int[] playerPosition; // position of middle
+        protected float[] playerPosition; // position of middle
         protected int[] movementDirection = new int[] { 0, 0 };
         protected int[] firstGridCell = new int[2] ;
         protected Ellipse playerEllipse;
         protected float speed = 2;
         protected int[] gridCell = new int[2];
+        protected int[] previousCell = new int[2];
         protected Directions currentDirection;
-        protected bool directionChanged = false;
         protected int[] gridSize;
         protected int cellSize;
         protected Game game;
@@ -51,7 +51,7 @@ namespace WnekoPacMan.Models
             playerEllipse.Fill = color;
             playerEllipse.Height = cellSize;
             playerEllipse.Width = cellSize;
-            playerPosition = new int[] { firstGridCell[1] * cellSize + cellSize / 2, firstGridCell[0] * cellSize + cellSize / 2 };
+            playerPosition = new float[] { firstGridCell[1] * cellSize + cellSize / 2, firstGridCell[0] * cellSize + cellSize / 2 };
             Binding topBinding = new Binding("PlayerTop");
             Binding leftBinding = new Binding("PlayerLeft");
             topBinding.Source = this;
@@ -65,12 +65,18 @@ namespace WnekoPacMan.Models
 
         protected bool CheckIfInTheMiddle()
         {
-            return playerPosition[0] - (gridCell[1] * cellSize) == cellSize / 2 && playerPosition[1] - gridCell[0] * cellSize == cellSize / 2;
+            return (Math.Abs(playerPosition[0] - (gridCell[1] * cellSize + cellSize / 2)) <= speed/2) && (Math.Abs(playerPosition[1] - (gridCell[0] * cellSize + cellSize / 2)) <= speed / 2);
+        }
+
+        protected void CalculateCell()
+        {
+            GridCell[1] = (int)(playerPosition[0]) / cellSize; //column
+            GridCell[0] = (int)(playerPosition[1]) / cellSize; //row
         }
 
         public int PlayerLeft
         {
-            get => playerPosition[0] - cellSize / 2;
+            get => (int)Math.Round(playerPosition[0] - cellSize / 2);
             set
             {
                 playerPosition[0] = value + cellSize / 2;
@@ -82,7 +88,7 @@ namespace WnekoPacMan.Models
         }
         public int PlayerTop
         {
-            get => playerPosition[1] - cellSize / 2;
+            get => (int)Math.Round(playerPosition[1] - cellSize / 2);
             set
             {
                 playerPosition[1] = value + cellSize / 2;
@@ -95,13 +101,12 @@ namespace WnekoPacMan.Models
 
         public float Speed { get => speed; set => speed = value; }
         public int[] GridCell { get => gridCell; set => gridCell = value; }
-        public bool DirectionChanged { get => directionChanged; set => directionChanged = value; }
 
         public virtual void Move()
         {
             PlayerLeft += (int)(Speed * movementDirection[0]);
             PlayerTop += (int)(Speed * movementDirection[1]);
-            if (playerPosition[0] == 0 || playerPosition[1] == 0 || playerPosition[0] == gridSize[1] * cellSize || playerPosition[1] == gridSize[0] * cellSize)
+            if (playerPosition[0] <= 0 || playerPosition[1] <= 0 || playerPosition[0] >= gridSize[1] * cellSize || playerPosition[1] >= gridSize[0] * cellSize)
             {
                 JumpOverBorder();
             }
@@ -122,10 +127,10 @@ namespace WnekoPacMan.Models
 
         protected void JumpOverBorder()
         {
-            if (playerPosition[0] == 0) playerPosition[0] = gridSize[1] * cellSize;
-            else if (playerPosition[1] == 0) playerPosition[1] = gridSize[0] * cellSize;
-            else if (playerPosition[0] == gridSize[1] * cellSize) playerPosition[0] = 0;
-            else if (playerPosition[1] == gridSize[0] * cellSize) playerPosition[1] = 0;
+            if (playerPosition[0] <= 0) playerPosition[0] = gridSize[1] * cellSize;
+            else if (playerPosition[1] <= 0) playerPosition[1] = gridSize[0] * cellSize;
+            else if (playerPosition[0] >= gridSize[1] * cellSize) playerPosition[0] = 0;
+            else if (playerPosition[1] >= gridSize[0] * cellSize) playerPosition[1] = 0;
         }
 
         public UIElement GetPlayerGraphics()
