@@ -11,7 +11,7 @@ namespace WnekoPacMan.Models.Ghosts
     {
         double distance = 0;
         static Brush playerColor = Brushes.Orange;
-        public Orange(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir) : base(gridSize, cellSize, game, cell, dir, playerColor)
+        public Orange(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, float speed) : base(gridSize, cellSize, game, cell, dir, playerColor, speed)
         {
             scatterModeTargetCell = new int[] { gridSize[0], 0 };
             name = "clyde";

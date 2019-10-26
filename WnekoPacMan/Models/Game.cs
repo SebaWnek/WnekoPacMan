@@ -131,11 +131,11 @@ namespace WnekoPacMan.Models
             gameMatrix = gameMatrixWithDots;
             GameMatrixSize[0] = GameMatrix.GetLength(0);
             GameMatrixSize[1] = GameMatrix.GetLength(1);
-            Human = new Human(this.GameMatrixSize, cellSize, this, new int[] { 23, 14 }, Directions.Down);
-            blinky = new Red(this.GameMatrixSize, cellSize, this, new int[] { 5, 6 }, Directions.Down);
-            pinky = new Pink(this.GameMatrixSize, cellSize, this, new int[] { 29, 1 }, Directions.Right);
-            inky = new Blue(this.GameMatrixSize, cellSize, this, new int[] { 29, 26 }, Directions.Up);
-            clyde = new Orange(this.GameMatrixSize, cellSize, this, new int[] { 5, 26 }, Directions.Left);
+            Human = new Human(this.GameMatrixSize, cellSize, this, new int[] { 23, 14 }, Directions.Left, 1);
+            blinky = new Red(this.GameMatrixSize, cellSize, this, new int[] { 5, 6 }, Directions.Down, 0.9f);
+            pinky = new Pink(this.GameMatrixSize, cellSize, this, new int[] { 29, 1 }, Directions.Right, 0.5f);
+            inky = new Blue(this.GameMatrixSize, cellSize, this, new int[] { 29, 26 }, Directions.Up, 0.5f);
+            clyde = new Orange(this.GameMatrixSize, cellSize, this, new int[] { 5, 26 }, Directions.Left, 0.5f);
             Players = new Player[] { Human, blinky, pinky, inky, clyde };
             foreach (Player ght in Players)
             {
@@ -192,6 +192,7 @@ namespace WnekoPacMan.Models
         private void EndGame()
         {
             MessageBox.Show("You won!");
+            Environment.Exit(0);
         }
 
         public UIElement GetElement(int row, int column)

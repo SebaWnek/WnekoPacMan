@@ -10,7 +10,7 @@ namespace WnekoPacMan.Models.Ghosts
     class Pink : AI
     {
         static Brush playerColor = Brushes.Pink;
-        public Pink(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir) : base(gridSize, cellSize, game, cell, dir, playerColor)
+        public Pink(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, float speed) : base(gridSize, cellSize, game, cell, dir, playerColor, speed)
         {
             scatterModeTargetCell = new int[] { 0, 0 };
             name = "pinky";

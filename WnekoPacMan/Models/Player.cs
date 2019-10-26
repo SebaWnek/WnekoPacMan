@@ -16,8 +16,8 @@ namespace WnekoPacMan.Models
     public enum Directions { Up, Down, Left, Right, Stop };
     public class Player : INotifyPropertyChanged
     {
-        public static Random rnd = new Random();
-        protected static Dictionary<Directions, int[]> movementDirections = new Dictionary<Directions, int[]>
+        public static readonly Random rnd = new Random();
+        protected static readonly Dictionary<Directions, int[]> movementDirections = new Dictionary<Directions, int[]>
         {
             {Directions.Up, new int[] { 0, -1 } },
             {Directions.Down, new int[] { 0, 1 }  },
@@ -25,18 +25,30 @@ namespace WnekoPacMan.Models
             {Directions.Right, new int[] { 1, 0 } },
             {Directions.Stop, new int[] {0,0} }
         };
-        protected static Dictionary<Directions, int[]> gridDirections = new Dictionary<Directions, int[]>
+        protected static readonly Dictionary<Directions, int[]> gridDirections = new Dictionary<Directions, int[]>
         {
             {Directions.Up, new int[] { -1, 0 } },
             {Directions.Down, new int[] { 1, 0 }  },
             {Directions.Left, new int[] { 0, -1 } },
-            {Directions.Right, new int[] { 0, 1 } }
+            {Directions.Right, new int[] { 0, 1 } },
+            {Directions.Stop, new int[] {0,0 } }
+        }; 
+        
+        protected static readonly Dictionary<Directions, Directions> oppositeDirections = new Dictionary<Directions, Directions>
+        {
+            {Directions.Up, Directions.Down },
+            {Directions.Down, Directions.Up },
+            {Directions.Left, Directions.Right },
+            {Directions.Right, Directions.Left },
+            {Directions.Stop, Directions.Stop }
         };
+
         protected float[] playerPosition; // position of middle
         protected int[] movementDirection = new int[] { 0, 0 };
         protected int[] firstGridCell = new int[2] ;
         protected Ellipse playerEllipse;
-        protected float speed = 2;
+        protected float baseSpeed = 2.5f;
+        private float speedModifier = 1;
         protected int[] gridCell = new int[2];
         protected int[] previousCell = new int[2];
         protected Directions currentDirection;
@@ -44,8 +56,11 @@ namespace WnekoPacMan.Models
         protected int cellSize;
         protected Game game;
 
-        protected Player(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, Brush color)
+        protected Player(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, Brush color, float speed)
         {
+            speedModifier = speed;
+            currentDirection = dir;
+            Array.Copy(movementDirections[currentDirection], movementDirection, 2);
             firstGridCell = cell;
             playerEllipse = new Ellipse();
             playerEllipse.Fill = color;
@@ -65,7 +80,7 @@ namespace WnekoPacMan.Models
 
         protected bool CheckIfInTheMiddle()
         {
-            return (Math.Abs(playerPosition[0] - (gridCell[1] * cellSize + cellSize / 2)) <= speed/2) && (Math.Abs(playerPosition[1] - (gridCell[0] * cellSize + cellSize / 2)) <= speed / 2);
+            return (Math.Abs(playerPosition[0] - (gridCell[1] * cellSize + cellSize / 2)) <= baseSpeed/2) && (Math.Abs(playerPosition[1] - (gridCell[0] * cellSize + cellSize / 2)) <= baseSpeed / 2);
         }
 
         protected void CalculateCell()
@@ -74,9 +89,9 @@ namespace WnekoPacMan.Models
             GridCell[0] = (int)(playerPosition[1]) / cellSize; //row
         }
 
-        public int PlayerLeft
+        public float PlayerLeft
         {
-            get => (int)Math.Round(playerPosition[0] - cellSize / 2);
+            get => playerPosition[0] - cellSize / 2;
             set
             {
                 playerPosition[0] = value + cellSize / 2;
@@ -86,9 +101,9 @@ namespace WnekoPacMan.Models
                 }
             }
         }
-        public int PlayerTop
+        public float PlayerTop
         {
-            get => (int)Math.Round(playerPosition[1] - cellSize / 2);
+            get => playerPosition[1] - cellSize / 2;
             set
             {
                 playerPosition[1] = value + cellSize / 2;
@@ -99,13 +114,14 @@ namespace WnekoPacMan.Models
             }
         }
 
-        public float Speed { get => speed; set => speed = value; }
         public int[] GridCell { get => gridCell; set => gridCell = value; }
+        protected float Speed { get => baseSpeed * speedModifier; set => speedModifier = value; }
 
         public virtual void Move()
         {
-            PlayerLeft += (int)(Speed * movementDirection[0]);
-            PlayerTop += (int)(Speed * movementDirection[1]);
+            CalculateCell();
+            PlayerLeft += Speed * movementDirection[0];
+            PlayerTop += Speed * movementDirection[1];
             if (playerPosition[0] <= 0 || playerPosition[1] <= 0 || playerPosition[0] >= gridSize[1] * cellSize || playerPosition[1] >= gridSize[0] * cellSize)
             {
                 JumpOverBorder();

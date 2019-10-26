@@ -31,26 +31,19 @@ namespace WnekoPacMan.Models
         protected Rectangle targetMark;
         protected bool showTarget = true;
 
-        Dictionary<Directions, int> directionToNumber = new Dictionary<Directions, int>
+        static readonly Dictionary<Directions, int> directionToNumber = new Dictionary<Directions, int>
         {
             {Directions.Up, 0 },
             {Directions.Down, 1 },
             {Directions.Left, 2 },
             {Directions.Right, 3 },
         };
-        Dictionary<int, Directions> numberToDirection = new Dictionary<int, Directions>
+        static readonly Dictionary<int, Directions> numberToDirection = new Dictionary<int, Directions>
         {
             {0, Directions.Up },
             {1, Directions.Down },
             {2, Directions.Left },
             {3, Directions.Right }
-        };
-        Dictionary<Directions, Directions> oppositeDirections = new Dictionary<Directions, Directions>
-        {
-            {Directions.Up, Directions.Down },
-            {Directions.Down, Directions.Up },
-            {Directions.Left, Directions.Right },
-            {Directions.Right, Directions.Left }
         };
 
         public AIModes Mode
@@ -68,10 +61,8 @@ namespace WnekoPacMan.Models
             currentDirection = oppositeDirections[currentDirection];
         }
 
-        public AI(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, Brush color) : base(gridSize, cellSize, game, cell, dir, color)
+        public AI(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, Brush color, float speed) : base(gridSize, cellSize, game, cell, dir, color, speed)
         {
-            currentDirection = dir;
-            movementDirection = movementDirections[dir];
             if (showTarget)
             {
                 targetMark = new Rectangle();
@@ -91,7 +82,6 @@ namespace WnekoPacMan.Models
         public override void Move()
         {
             base.Move();
-            CalculateCell();
             CheckIfCaugth();
             int nextDirNumb;
             int count;
@@ -110,7 +100,15 @@ namespace WnekoPacMan.Models
                     SelectTargetCell();
                     currentDirection = ChooseNextDirection(possibleDirrections);
                 }
-                movementDirection = movementDirections[currentDirection];
+                Array.Copy(movementDirections[currentDirection], movementDirection, 2);
+                if (currentDirection == Directions.Down || currentDirection == Directions.Up)
+                {
+                    PlayerLeft = gridCell[1] * cellSize;
+                }
+                else
+                {
+                    PlayerTop = gridCell[0] * cellSize;
+                }
                 //Debug.WriteLine(targedCell[0] + ", " + targedCell[1]);
             }
 

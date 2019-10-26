@@ -13,7 +13,7 @@ namespace WnekoPacMan.Models.Ghosts
         int[] redCell = new int[2];
         int[] playerForwardCell = new int[2];
         int[] vector = new int[2];
-        public Blue(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir) : base(gridSize, cellSize, game, cell, dir, playerColor)
+        public Blue(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, float speed) : base(gridSize, cellSize, game, cell, dir, playerColor, speed)
         {
             scatterModeTargetCell = gridSize;
             name = "inky";
