@@ -32,6 +32,8 @@ namespace WnekoPacMan.Models
         public Human(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, float speed) : base(gridSize, cellSize, game, cell, dir, playerColor, speed)
         {
             nextDirection = dir;
+            speedMode = SpeedModes.Human;
+            speedModifier = Speeds[speedMode];
         }
 
         public Directions NextDirection { get => nextDirection; set => nextDirection = value; }
@@ -41,7 +43,6 @@ namespace WnekoPacMan.Models
             if (shouldMove)
             {
                 base.Move();
-
                 newGridCell[1] = (int)(playerPosition[0]) / cellSize; //column
                 newGridCell[0] = (int)(playerPosition[1]) / cellSize; //row
                 previousGridCell[0] = gridCell[0];

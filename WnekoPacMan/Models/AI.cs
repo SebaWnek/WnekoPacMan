@@ -52,9 +52,17 @@ namespace WnekoPacMan.Models
             set
             {
                 mode = value;
-                TurnArround();
             }
         }
+
+        public virtual void ChangeMode(AIModes newMode, SpeedModes newSpeed)
+        {
+            if (mode != AIModes.Random) TurnArround();
+            mode = newMode;
+            speedMode = newSpeed;
+            ChangeSpeed(newSpeed);
+        }
+
 
         private void TurnArround()
         {
@@ -65,6 +73,7 @@ namespace WnekoPacMan.Models
         {
             if (showTarget)
             {
+                mode = AIModes.Scatter;
                 targetMark = new Rectangle();
                 targetMark.Fill = color;
                 targetMark.Width = cellSize;
@@ -87,6 +96,14 @@ namespace WnekoPacMan.Models
             int count;
             if (CheckIfInTheMiddle())
             {
+                if(game.CheckGridCellType(gridCell) == CellType.tunnel)
+                {
+                    speedModifier = Speeds[SpeedModes.Tunnel];
+                }
+                else
+                {
+                    speedModifier = Speeds[speedMode];
+                }
                 possibleDirrections = game.CheckIntersection(gridCell);
                 possibleDirrections[directionToNumber[oppositeDirections[currentDirection]]] = false;
                 count = possibleDirrections.Count(t => t);
@@ -152,7 +169,7 @@ namespace WnekoPacMan.Models
             return Math.Sqrt(x * x + y * y);
         }
 
-        private void SelectTargetCell()
+        protected virtual void SelectTargetCell()
         {
             switch (Mode)
             {

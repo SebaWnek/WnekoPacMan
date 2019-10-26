@@ -13,9 +13,31 @@ using System.Windows.Shapes;
 
 namespace WnekoPacMan.Models
 {
+    public enum SpeedModes
+    {
+        Human,
+        Normal,
+        Tunnel,
+        Fright,
+        FrightHuman,
+        Elroy1,
+        Elroy2
+    }
+
     public enum Directions { Up, Down, Left, Right, Stop };
     public class Player : INotifyPropertyChanged
     {
+        protected Dictionary<SpeedModes, float> Speeds = new Dictionary<SpeedModes, float>
+        {
+            { SpeedModes.Human, 0.8f},
+            { SpeedModes.Normal, 0.75f},
+            { SpeedModes.Tunnel, 0.4f},
+            { SpeedModes.Fright, 0.5f},
+            { SpeedModes.FrightHuman, 0.9f},
+            { SpeedModes.Elroy1, 0.8f},
+            { SpeedModes.Elroy2, 0.85f},
+        };
+
         public static readonly Random rnd = new Random();
         protected static readonly Dictionary<Directions, int[]> movementDirections = new Dictionary<Directions, int[]>
         {
@@ -48,7 +70,9 @@ namespace WnekoPacMan.Models
         protected int[] firstGridCell = new int[2] ;
         protected Ellipse playerEllipse;
         protected float baseSpeed = 2.5f;
-        private float speedModifier = 1;
+        protected float speedModifier = 0.75f;
+        protected SpeedModes speedMode = SpeedModes.Normal;
+
         protected int[] gridCell = new int[2];
         protected int[] previousCell = new int[2];
         protected Directions currentDirection;
@@ -87,6 +111,12 @@ namespace WnekoPacMan.Models
         {
             GridCell[1] = (int)(playerPosition[0]) / cellSize; //column
             GridCell[0] = (int)(playerPosition[1]) / cellSize; //row
+        }
+
+        protected virtual void ChangeSpeed(SpeedModes mode)
+        {
+            speedMode = mode;
+            speedModifier = Speeds[mode];
         }
 
         public float PlayerLeft

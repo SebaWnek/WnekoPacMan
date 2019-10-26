@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -20,7 +21,8 @@ namespace WnekoPacMan.Models
         dot,
         energizer,
         fruit,
-        border
+        border,
+        tunnel
     }
     public enum Intersction
     {
@@ -32,8 +34,35 @@ namespace WnekoPacMan.Models
 
     public class Game
     {
-        DispatcherTimer timer;
+        DispatcherTimer frameTimer;
+        Timer gameTimer;
+        int gameTimerCounter;
+        int[] gameTimerIntervals =
+        {
+            7000,
+            20000,
+            7000,
+            20000,
+            5000,
+            20000,
+            5000,
+            int.MaxValue
+        };
 
+        private Dictionary<int, CellType> cellTypes = new Dictionary<int, CellType>
+        {
+            {-2, CellType.tunnel },
+            {-1, CellType.wall },
+            {0, CellType.empty },
+            {1, CellType.dot },
+            {2, CellType.energizer },
+            {3, CellType.fruit }
+        };
+
+        Timer scaredTimer;
+        int[] scaredTime = new int[] { 6000, 5000 };
+        int scaredCounter = 0;
+        
         Player[] players;
         Human human;
         Red blinky;
@@ -47,80 +76,13 @@ namespace WnekoPacMan.Models
             {2, 50 }
         };
 
+        int level = 1;
         int skipCounter = 0;
         int skipTreshold = 1;
         int interval = 8;
-        int[,] gameMatrixWithDots =
-        {
-            {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-            {-1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1 },
-            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
-            {-1, 2 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 2 , -1 },
-            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
-            {-1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1 },
-            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
-            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
-            {-1, 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , -1 },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 0 , -1, -1, 0 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 0 , -1, -1, 0 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {0 , 0 , 0 , 0 , 0 , 0 , 1 , 0 , 0 , 0 , -1, -1, 0 , 0 , 0 , 0 , -1, -1, 0 , 0 , 0 , 1 , 0 , 0 , 0 , 0 , 0 , 0  },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {-1, -1, -1, -1, -1, -1, 1 , -1, -1, 0 , -1, -1, -1, -1, -1, -1, -1, -1, 0 , -1, -1, 1 , -1, -1, -1, -1, -1, -1 },
-            {-1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1 },
-            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
-            {-1, 1 , -1, -1, -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, 1 , -1, -1, -1, -1, 1 , -1 },
-            {-1, 2 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 0 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 2 , -1 },
-            {-1, -1, -1, 1 , -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, 1 , -1, -1, -1 },
-            {-1, -1, -1, 1 , -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, 1 , -1, -1, -1 },
-            {-1, 1 , 1 , 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , -1, -1, 1 , 1 , 1 , 1 , 1 , 1 , -1 },
-            {-1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1 },
-            {-1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1, -1, 1 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 , -1 },
-            {-1, 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , -1 },
-            {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
-        };
-
-
-        int[,] gameMatrixEmpty =
-            {
-                {-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1},
-                {-1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1},
-                {-1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1},
-                {-1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1},
-                {-1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1},
-                {-1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1},
-                {-1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1},
-                {-1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 },
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1},
-                {-1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1},
-                {-1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1},
-                {-1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  0 ,  -1},
-                {-1,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  -1},
-                {-1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1},
-                {-1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1},
-                {-1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  -1,  -1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1},
-                {-1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1},
-                {-1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1,  -1,  0 ,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  0 ,  -1},
-                {-1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  -1},
-                {-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1}
-            };
-
+        int elroy1Treshold = 200;
+        int elroy2Treshold = 100;
+        
         int[,] gameMatrix;
         int[] gameMatrixSize = new int[2];
         int cellSize;
@@ -128,14 +90,14 @@ namespace WnekoPacMan.Models
 
         public Game(int cellSize)
         {
-            gameMatrix = gameMatrixWithDots;
+            gameMatrix = GameMatrices.gameMatrixWithDots;
             GameMatrixSize[0] = GameMatrix.GetLength(0);
             GameMatrixSize[1] = GameMatrix.GetLength(1);
             Human = new Human(this.GameMatrixSize, cellSize, this, new int[] { 23, 14 }, Directions.Left, 1);
-            blinky = new Red(this.GameMatrixSize, cellSize, this, new int[] { 5, 6 }, Directions.Down, 0.9f);
-            pinky = new Pink(this.GameMatrixSize, cellSize, this, new int[] { 29, 1 }, Directions.Right, 0.5f);
-            inky = new Blue(this.GameMatrixSize, cellSize, this, new int[] { 29, 26 }, Directions.Up, 0.5f);
-            clyde = new Orange(this.GameMatrixSize, cellSize, this, new int[] { 5, 26 }, Directions.Left, 0.5f);
+            blinky = new Red(this.GameMatrixSize, cellSize, this, new int[] { 5, 6 }, Directions.Down, 1);
+            pinky = new Pink(this.GameMatrixSize, cellSize, this, new int[] { 29, 1 }, Directions.Right, 1);
+            inky = new Blue(this.GameMatrixSize, cellSize, this, new int[] { 29, 26 }, Directions.Up, 1);
+            clyde = new Orange(this.GameMatrixSize, cellSize, this, new int[] { 5, 26 }, Directions.Left, 1);
             Players = new Player[] { Human, blinky, pinky, inky, clyde };
             foreach (Player ght in Players)
             {
@@ -147,11 +109,46 @@ namespace WnekoPacMan.Models
             blinky.RedPositionChanged += inky.OnRedPositionChanged;
             this.cellSize = cellSize;
             dotsCount = CountDots();
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(interval);
-            timer.Tick += Timer_Tick;
-            timer.Start();
+            frameTimer = new DispatcherTimer();
+            frameTimer.Interval = TimeSpan.FromMilliseconds(interval);
+            frameTimer.Tick += Timer_Tick;
+            frameTimer.Start();
+            gameTimer = new Timer();
+            gameTimer.Interval = gameTimerIntervals[gameTimerCounter];
+            gameTimer.Elapsed += GameTimer_Elapsed;
+            gameTimer.Start();
+            scaredTimer = new Timer();
+            scaredTimer.Interval = scaredTime[scaredCounter];
+            scaredTimer.Elapsed += ScaredTimer_Elapsed;
+        }
 
+        private void ScaredTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void GameTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            gameTimerCounter++;
+            
+            foreach (Player player in Players)
+            {
+                AI ghost = player as AI;
+                if (gameTimerCounter % 2 == 1 && ghost != null) ghost.ChangeMode(AIModes.Normal, SpeedModes.Normal);
+                else if (ghost != null) ghost.ChangeMode(AIModes.Scatter, SpeedModes.Normal);
+            }
+            gameTimer.Stop();
+            gameTimer.Interval = gameTimerIntervals[gameTimerCounter];
+            gameTimer.Start();
+        }
+
+        private void ChangeMode(AIModes mode, SpeedModes speed)
+        {
+            foreach(Player player in Players)
+            {
+                AI ghost = player as AI;
+                if (ghost != null) ghost.ChangeMode(mode, speed);
+            }
         }
 
         private int CountDots()
@@ -182,6 +179,14 @@ namespace WnekoPacMan.Models
             gameMatrix[row, col] = 0;
             dotsList[row*100+col].Visibility = Visibility.Hidden;
             dotsCount--;
+            if (dotsCount == elroy1Treshold)
+            {
+                blinky.BecomeElroy(1);
+            }
+            if (dotsCount == elroy2Treshold)
+            {
+                blinky.BecomeElroy(2);
+            }
             if (dotsCount == 0)
             {
                 EndGame();
@@ -241,21 +246,10 @@ namespace WnekoPacMan.Models
         public CellType CheckGridCellType(int[] rowcol)
         {
             object[] result = new object[2];
+            
             if (rowcol[0] >= 0 && rowcol[0] < gameMatrixSize[0] && rowcol[1] >= 0 && rowcol[1] < gameMatrixSize[1])
             {
-                switch (gameMatrix[rowcol[0], rowcol[1]])
-                {
-                    case -1:
-                        return CellType.wall;
-                    case 0:
-                        return CellType.empty;
-                    case 1:
-                        return CellType.dot;
-                    case 2:
-                        return CellType.energizer;
-                    case 3:
-                        return CellType.fruit;
-                }
+                return cellTypes[gameMatrix[rowcol[0], rowcol[1]]];
             }
             return CellType.border;
         }
