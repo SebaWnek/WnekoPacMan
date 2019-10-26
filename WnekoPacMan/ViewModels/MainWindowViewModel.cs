@@ -1,16 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 using WnekoPacMan.Models;
 
 namespace WnekoPacMan.ViewModels
@@ -18,7 +10,7 @@ namespace WnekoPacMan.ViewModels
     partial class MainWindowViewModel : INotifyPropertyChanged
     {
         int cellSize = 27;
-        
+
         Game game;
         MainWindow main = (MainWindow)App.Current.MainWindow;
         int[] gridSize = new int[2];
@@ -48,7 +40,7 @@ namespace WnekoPacMan.ViewModels
 
         private void GenerateGameGrid()
         {
-            for(int i = 0; i < game.GameMatrixSize[0]; i++)
+            for (int i = 0; i < game.GameMatrixSize[0]; i++)
             {
                 RowDefinition row = new RowDefinition();
                 row.Height = new GridLength(cellSize);
@@ -66,12 +58,12 @@ namespace WnekoPacMan.ViewModels
         private void GenerateGridUI()
         {
             UIElement element;
-            for(int i = 0; i < game.GameMatrixSize[0]; i++)
+            for (int i = 0; i < game.GameMatrixSize[0]; i++)
             {
                 for (int j = 0; j < game.GameMatrixSize[1]; j++)
                 {
                     element = game.GetElement(i, j);
-                    if(element != null) main.gameGrid.Children.Add(element);
+                    if (element != null) main.gameGrid.Children.Add(element);
                 }
             }
         }

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,6 +34,8 @@ namespace WnekoPacMan.Models
         DispatcherTimer frameTimer;
         Timer gameTimer;
         int gameTimerCounter;
+        int gameTimerTime;
+        Stopwatch stopwatch = new Stopwatch();
         int[] gameTimerIntervals =
         {
             7000,
@@ -59,10 +58,10 @@ namespace WnekoPacMan.Models
             {3, CellType.fruit }
         };
 
-        Timer scaredTimer;
-        int[] scaredTime = new int[] { 6000, 5000 };
+        DispatcherTimer scaredTimer;
+        int[] scaredTime = new int[] { 6000, 500, 500, 500, 500, 500 };
         int scaredCounter = 0;
-        
+
         Player[] players;
         Human human;
         Red blinky;
@@ -82,7 +81,7 @@ namespace WnekoPacMan.Models
         int interval = 8;
         int elroy1Treshold = 200;
         int elroy2Treshold = 100;
-        
+
         int[,] gameMatrix;
         int[] gameMatrixSize = new int[2];
         int cellSize;
@@ -103,8 +102,8 @@ namespace WnekoPacMan.Models
             {
                 if (ght is AI)
                 {
-                    Human.HumanPositionChanged += ((AI)ght).OnHumanPositionChanged; 
-                } 
+                    Human.HumanPositionChanged += ((AI)ght).OnHumanPositionChanged;
+                }
             }
             blinky.RedPositionChanged += inky.OnRedPositionChanged;
             this.cellSize = cellSize;
@@ -117,20 +116,16 @@ namespace WnekoPacMan.Models
             gameTimer.Interval = gameTimerIntervals[gameTimerCounter];
             gameTimer.Elapsed += GameTimer_Elapsed;
             gameTimer.Start();
-            scaredTimer = new Timer();
-            scaredTimer.Interval = scaredTime[scaredCounter];
-            scaredTimer.Elapsed += ScaredTimer_Elapsed;
+            stopwatch.Start();
+            scaredTimer = new DispatcherTimer();
+            scaredTimer.Tick += ScaredTimer_Tick;
         }
 
-        private void ScaredTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
 
         private void GameTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             gameTimerCounter++;
-            
+            stopwatch.Restart();
             foreach (Player player in Players)
             {
                 AI ghost = player as AI;
@@ -144,7 +139,7 @@ namespace WnekoPacMan.Models
 
         private void ChangeMode(AIModes mode, SpeedModes speed)
         {
-            foreach(Player player in Players)
+            foreach (Player player in Players)
             {
                 AI ghost = player as AI;
                 if (ghost != null) ghost.ChangeMode(mode, speed);
@@ -154,9 +149,9 @@ namespace WnekoPacMan.Models
         private int CountDots()
         {
             int count = 0;
-            for(int i = 0; i < GameMatrixSize[0]; i++)
+            for (int i = 0; i < GameMatrixSize[0]; i++)
             {
-                for(int j = 0; j < GameMatrixSize[1]; j++)
+                for (int j = 0; j < GameMatrixSize[1]; j++)
                 {
                     if (GameMatrix[i, j] == 1 || GameMatrix[i, j] == 2)
                     {
@@ -176,8 +171,12 @@ namespace WnekoPacMan.Models
         internal int Eat(int row, int col)
         {
             int score = scores[gameMatrix[row, col]];
+            if (CheckGridCellType(new int[] { row, col }) == CellType.energizer)
+            {
+                Energize();
+            }
             gameMatrix[row, col] = 0;
-            dotsList[row*100+col].Visibility = Visibility.Hidden;
+            dotsList[row * 100 + col].Visibility = Visibility.Hidden;
             dotsCount--;
             if (dotsCount == elroy1Treshold)
             {
@@ -192,6 +191,55 @@ namespace WnekoPacMan.Models
                 EndGame();
             }
             return score;
+        }
+
+        private void Energize()
+        {
+            scaredCounter = 0;
+            scaredTimer.Interval = TimeSpan.FromMilliseconds(scaredTime[0]);
+            gameTimerTime = gameTimerIntervals[gameTimerCounter] - (int)stopwatch.ElapsedMilliseconds;
+            gameTimer.Stop();
+            stopwatch.Stop();
+            foreach (Player player in Players)
+            {
+                AI ghost = player as AI;
+                if (ghost != null)
+                {
+                    ghost.ChangeMode(AIModes.Random, SpeedModes.Fright);
+                    ghost.ChangeColor(1);
+                }
+            }
+            human.ChangeSpeed(SpeedModes.FrightHuman);
+            scaredTimer.Start();
+        }
+        private void ScaredTimer_Tick(object sender, EventArgs e)
+        {
+            scaredCounter++;
+            foreach (Player player in Players)
+            {
+                AI ghost = player as AI;
+                if (ghost != null) ghost.ChangeColor(scaredCounter % 2);
+            }
+            if (scaredCounter == scaredTime.Length)
+            {
+                scaredTimer.Stop();
+                foreach (Player player in Players)
+                {
+                    AI ghost = player as AI;
+                    if (ghost != null)
+                    {
+                        ghost.ChangeMode(AIModes.Normal, SpeedModes.Normal);
+                        ghost.ChangeColor(2);
+                    }
+                }
+                gameTimer.Interval = gameTimerTime;
+                gameTimer.Start();
+                stopwatch.Start();
+                return;
+            }
+            scaredTimer.Stop();
+            scaredTimer.Interval = TimeSpan.FromMilliseconds(scaredTime[scaredCounter]);
+            scaredTimer.Start();
         }
 
         private void EndGame()
@@ -212,7 +260,7 @@ namespace WnekoPacMan.Models
                 wall.SetValue(Grid.ColumnProperty, column);
                 return wall;
             }
-            if (GameMatrix[row,column] == 1)
+            if (GameMatrix[row, column] == 1)
             {
                 Ellipse dot = new Ellipse();
                 dot.Fill = Brushes.White;
@@ -223,10 +271,10 @@ namespace WnekoPacMan.Models
                 dot.SetValue(Grid.RowProperty, row);
                 dot.SetValue(Grid.ColumnProperty, column);
                 dot.Name = "dot" + row + "_" + column;
-                dotsList.Add(row*100+column, dot);
+                dotsList.Add(row * 100 + column, dot);
                 return dot;
             }
-            if(GameMatrix[row,column] == 2)
+            if (GameMatrix[row, column] == 2)
             {
                 Ellipse energizer = new Ellipse();
                 energizer.Fill = Brushes.White;
@@ -237,7 +285,7 @@ namespace WnekoPacMan.Models
                 energizer.SetValue(Grid.RowProperty, row);
                 energizer.SetValue(Grid.ColumnProperty, column);
                 energizer.Name = "energizer" + row + "_" + column;
-                dotsList.Add(row*100+column, energizer);
+                dotsList.Add(row * 100 + column, energizer);
                 return energizer;
             }
             else return null;
@@ -245,8 +293,6 @@ namespace WnekoPacMan.Models
 
         public CellType CheckGridCellType(int[] rowcol)
         {
-            object[] result = new object[2];
-            
             if (rowcol[0] >= 0 && rowcol[0] < gameMatrixSize[0] && rowcol[1] >= 0 && rowcol[1] < gameMatrixSize[1])
             {
                 return cellTypes[gameMatrix[rowcol[0], rowcol[1]]];
@@ -259,8 +305,8 @@ namespace WnekoPacMan.Models
             bool[] neighbours = new bool[4]; //up, down, left, right
             int[] up = { gridCell[0] - 1, gridCell[1] };
             int[] down = { gridCell[0] + 1, gridCell[1] };
-            int[] left = { gridCell[0], gridCell[1] - 1};
-            int[] right = { gridCell[0], gridCell[1] + 1};
+            int[] left = { gridCell[0], gridCell[1] - 1 };
+            int[] right = { gridCell[0], gridCell[1] + 1 };
             if (up[0] < 0 || gameMatrix[up[0], up[1]] != -1) neighbours[0] = true;
             if (down[0] >= gameMatrixSize[0] || gameMatrix[down[0], down[1]] != -1) neighbours[1] = true;
             if (left[1] < 0 || gameMatrix[left[0], left[1]] != -1) neighbours[2] = true;

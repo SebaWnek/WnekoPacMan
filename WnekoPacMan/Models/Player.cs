@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -54,8 +51,8 @@ namespace WnekoPacMan.Models
             {Directions.Left, new int[] { 0, -1 } },
             {Directions.Right, new int[] { 0, 1 } },
             {Directions.Stop, new int[] {0,0 } }
-        }; 
-        
+        };
+
         protected static readonly Dictionary<Directions, Directions> oppositeDirections = new Dictionary<Directions, Directions>
         {
             {Directions.Up, Directions.Down },
@@ -67,7 +64,7 @@ namespace WnekoPacMan.Models
 
         protected float[] playerPosition; // position of middle
         protected int[] movementDirection = new int[] { 0, 0 };
-        protected int[] firstGridCell = new int[2] ;
+        protected int[] firstGridCell = new int[2];
         protected Ellipse playerEllipse;
         protected float baseSpeed = 2.5f;
         protected float speedModifier = 0.75f;
@@ -102,9 +99,10 @@ namespace WnekoPacMan.Models
             this.game = game;
         }
 
+
         protected bool CheckIfInTheMiddle()
         {
-            return (Math.Abs(playerPosition[0] - (gridCell[1] * cellSize + cellSize / 2)) <= baseSpeed/2) && (Math.Abs(playerPosition[1] - (gridCell[0] * cellSize + cellSize / 2)) <= baseSpeed / 2);
+            return (Math.Abs(playerPosition[0] - (gridCell[1] * cellSize + cellSize / 2)) <= baseSpeed / 2) && (Math.Abs(playerPosition[1] - (gridCell[0] * cellSize + cellSize / 2)) <= baseSpeed / 2);
         }
 
         protected void CalculateCell()
@@ -113,7 +111,7 @@ namespace WnekoPacMan.Models
             GridCell[0] = (int)(playerPosition[1]) / cellSize; //row
         }
 
-        protected virtual void ChangeSpeed(SpeedModes mode)
+        public virtual void ChangeSpeed(SpeedModes mode)
         {
             speedMode = mode;
             speedModifier = Speeds[mode];
@@ -127,7 +125,7 @@ namespace WnekoPacMan.Models
                 playerPosition[0] = value + cellSize / 2;
                 if (game.SkipCounter == 0)
                 {
-                    NotifyPropertyChanged(); 
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -139,7 +137,7 @@ namespace WnekoPacMan.Models
                 playerPosition[1] = value + cellSize / 2;
                 if (game.SkipCounter == 0)
                 {
-                    NotifyPropertyChanged(); 
+                    NotifyPropertyChanged();
                 }
             }
         }

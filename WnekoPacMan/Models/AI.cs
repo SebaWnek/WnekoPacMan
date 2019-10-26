@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -30,6 +28,7 @@ namespace WnekoPacMan.Models
         protected string name;
         protected Rectangle targetMark;
         protected bool showTarget = true;
+        Brush basecolor;
 
         static readonly Dictionary<Directions, int> directionToNumber = new Dictionary<Directions, int>
         {
@@ -75,6 +74,7 @@ namespace WnekoPacMan.Models
             {
                 mode = AIModes.Scatter;
                 targetMark = new Rectangle();
+                basecolor = color;
                 targetMark.Fill = color;
                 targetMark.Width = cellSize;
                 targetMark.Height = cellSize;
@@ -84,7 +84,23 @@ namespace WnekoPacMan.Models
                 columnProperty.Source = this;
                 rowProperty.Source = this;
                 targetMark.SetBinding(Grid.RowProperty, rowProperty);
-                targetMark.SetBinding(Grid.ColumnProperty, columnProperty); 
+                targetMark.SetBinding(Grid.ColumnProperty, columnProperty);
+            }
+        }
+
+        public void ChangeColor(int color)
+        {
+            switch (color)
+            {
+                case 1:
+                    playerEllipse.Fill = Brushes.Blue;
+                    break;
+                case 0:
+                    playerEllipse.Fill = Brushes.White;
+                    break;
+                default:
+                    playerEllipse.Fill = basecolor;
+                    break;
             }
         }
 
@@ -96,7 +112,7 @@ namespace WnekoPacMan.Models
             int count;
             if (CheckIfInTheMiddle())
             {
-                if(game.CheckGridCellType(gridCell) == CellType.tunnel)
+                if (game.CheckGridCellType(gridCell) == CellType.tunnel)
                 {
                     speedModifier = Speeds[SpeedModes.Tunnel];
                 }
@@ -133,7 +149,7 @@ namespace WnekoPacMan.Models
 
         private void CheckIfCaugth()
         {
-            if (gridCell[0] == playerCell[0] && gridCell[1] == playerCell[1]) 
+            if (gridCell[0] == playerCell[0] && gridCell[1] == playerCell[1])
             {
                 //MessageBox.Show("You're dead!");
             }

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace WnekoPacMan.Models
@@ -63,7 +60,7 @@ namespace WnekoPacMan.Models
                 if (!isTurning && CheckIfInTheMiddle())
                 {
                     nextCell = GetNextCell(currentDirection);
-                    nextCellType = game.CheckGridCellType(nextCell); 
+                    nextCellType = game.CheckGridCellType(nextCell);
                     if (currentDirection == nextDirection && nextCellType == CellType.wall)
                     {
                         currentDirection = Directions.Stop;
@@ -73,7 +70,7 @@ namespace WnekoPacMan.Models
                     {
                         nextCell = GetNextCell(nextDirection);
                         nextCellType = game.CheckGridCellType(nextCell);
-                        if(nextCellType != CellType.wall)
+                        if (nextCellType != CellType.wall)
                         {
                             currentDirection = nextDirection;
                             Array.Copy(movementDirections[currentDirection], movementDirection, 2);
@@ -180,7 +177,7 @@ namespace WnekoPacMan.Models
         {
             Directions dir1;
             Directions dir2;
-            if(currentDirection == Directions.Down || currentDirection == Directions.Up)
+            if (currentDirection == Directions.Down || currentDirection == Directions.Up)
             {
                 dir1 = Directions.Left;
                 dir2 = Directions.Right;
@@ -192,12 +189,12 @@ namespace WnekoPacMan.Models
             }
             CellType dir1Cell = game.CheckGridCellType(GetNextCell(dir1));
             CellType dir2Cell = game.CheckGridCellType(GetNextCell(dir2));
-            if(dir1Cell != CellType.wall)
+            if (dir1Cell != CellType.wall)
             {
                 possibleDirections.Add(dir1);
                 canTurn = true;
             }
-            if(dir2Cell != CellType.wall)
+            if (dir2Cell != CellType.wall)
             {
                 possibleDirections.Add(dir2);
                 canTurn = true;

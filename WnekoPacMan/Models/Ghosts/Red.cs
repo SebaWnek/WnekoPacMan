@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace WnekoPacMan.Models.Ghosts
@@ -39,7 +35,7 @@ namespace WnekoPacMan.Models.Ghosts
         protected override void SelectTargetCell()
         {
             base.SelectTargetCell();
-            if((isElroy1 || isElroy2) && Mode == AIModes.Scatter)
+            if ((isElroy1 || isElroy2) && Mode == AIModes.Scatter)
             {
                 targetCell = ChooseCell();
                 NotifyPropertyChanged("TargetCellColumn");
@@ -47,7 +43,7 @@ namespace WnekoPacMan.Models.Ghosts
             }
         }
 
-        protected override void ChangeSpeed(SpeedModes mode)
+        public override void ChangeSpeed(SpeedModes mode)
         {
             base.ChangeSpeed(mode);
             if (mode == SpeedModes.Normal)
@@ -61,23 +57,23 @@ namespace WnekoPacMan.Models.Ghosts
                 {
                     speedMode = SpeedModes.Elroy2;
                     speedModifier = Speeds[SpeedModes.Elroy2];
-                } 
+                }
             }
         }
 
         public void BecomeElroy(int i)
         {
-            if ( i == 0)
+            if (i == 0)
             {
                 isElroy1 = false;
                 isElroy2 = false;
             }
-            else if(i == 1)
+            else if (i == 1)
             {
                 isElroy1 = true;
                 isElroy2 = false;
             }
-            else if( i == 2)
+            else if (i == 2)
             {
                 isElroy1 = false;
                 isElroy2 = true;
