@@ -69,6 +69,7 @@ namespace WnekoPacMan.Models
         protected float baseSpeed = 2.5f;
         protected float speedModifier = 0.75f;
         protected SpeedModes speedMode = SpeedModes.Normal;
+        protected bool isStopped = false;
 
         protected int[] gridCell = new int[2];
         protected int[] previousCell = new int[2];
@@ -79,6 +80,9 @@ namespace WnekoPacMan.Models
 
         protected Player(int[] gridSize, int cellSize, Game game, int[] cell, Directions dir, Brush color, float speed)
         {
+            this.cellSize = cellSize;
+            this.gridSize = gridSize;
+            this.game = game;
             speedModifier = speed;
             currentDirection = dir;
             Array.Copy(movementDirections[currentDirection], movementDirection, 2);
@@ -87,18 +91,19 @@ namespace WnekoPacMan.Models
             playerEllipse.Fill = color;
             playerEllipse.Height = cellSize;
             playerEllipse.Width = cellSize;
-            playerPosition = new float[] { firstGridCell[1] * cellSize + cellSize / 2, firstGridCell[0] * cellSize + cellSize / 2 };
+            MoveToStartPosition();
             Binding topBinding = new Binding("PlayerTop");
             Binding leftBinding = new Binding("PlayerLeft");
             topBinding.Source = this;
             leftBinding.Source = this;
             playerEllipse.SetBinding(Canvas.LeftProperty, leftBinding);
             playerEllipse.SetBinding(Canvas.TopProperty, topBinding);
-            this.gridSize = gridSize;
-            this.cellSize = cellSize;
-            this.game = game;
         }
 
+        protected void MoveToStartPosition()
+        {
+            playerPosition = new float[] { firstGridCell[1] * cellSize + cellSize / 2, firstGridCell[0] * cellSize + cellSize / 2 };
+        }
 
         protected bool CheckIfInTheMiddle()
         {
@@ -147,12 +152,15 @@ namespace WnekoPacMan.Models
 
         public virtual void Move()
         {
-            CalculateCell();
-            PlayerLeft += Speed * movementDirection[0];
-            PlayerTop += Speed * movementDirection[1];
-            if (playerPosition[0] <= 0 || playerPosition[1] <= 0 || playerPosition[0] >= gridSize[1] * cellSize || playerPosition[1] >= gridSize[0] * cellSize)
+            if (!isStopped)
             {
-                JumpOverBorder();
+                CalculateCell();
+                PlayerLeft += Speed * movementDirection[0];
+                PlayerTop += Speed * movementDirection[1];
+                if (playerPosition[0] <= 0 || playerPosition[1] <= 0 || playerPosition[0] >= gridSize[1] * cellSize || playerPosition[1] >= gridSize[0] * cellSize)
+                {
+                    JumpOverBorder();
+                } 
             }
         }
 

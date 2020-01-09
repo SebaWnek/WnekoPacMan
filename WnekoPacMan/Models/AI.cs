@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -149,10 +150,24 @@ namespace WnekoPacMan.Models
 
         private void CheckIfCaugth()
         {
-            if (gridCell[0] == playerCell[0] && gridCell[1] == playerCell[1])
+            if (gridCell[0] == playerCell[0] && gridCell[1] == playerCell[1] && mode == AIModes.Random)
+            {
+                GetEaten();
+            }
+            else if (gridCell[0] == playerCell[0] && gridCell[1] == playerCell[1] && mode != AIModes.Random)
             {
                 //MessageBox.Show("You're dead!");
             }
+        }
+
+        private async void GetEaten()
+        {
+            playerEllipse.Visibility = Visibility.Hidden;
+            isStopped = true;
+            await Task.Delay(1000);
+            playerEllipse.Visibility = Visibility.Visible;
+            isStopped = false;
+            MoveToStartPosition();
         }
 
         private Directions ChooseNextDirection(bool[] possibleDirrections)
